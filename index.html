@@ -2672,11 +2672,19 @@ function isShadowbanned(username){
 
 
 // INIT
-applyLang();
 showAuthPanel('welcome');
-window.addEventListener('load',startGlitchEffects);
+  window.addEventListener('load',startGlitchEffects);
+  checkGlobalState();
 </script>
-<!-- Hidden admin entry — top-right corner, invisible -->
+
 <div id="admin-secret-zone" onclick="adminSecretClick()"></div>
+
+<div id="maintenance-overlay" class="overlay-full">
+  <div class="maintenance-box">
+    <h1 class="glitch" data-text="SYSTEM MAINTENANCE">SYSTEM MAINTENANCE</h1>
+    <p>Доступ временно ограничен. Ведутся технические работы.</p>
+  </div>
+</div>
+
 </body>
 </html>
