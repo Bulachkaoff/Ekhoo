@@ -21,16 +21,36 @@
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
   const dbRef = ref(database, 'ekhoo_global_db');
+
+  // Делаем базу доступной для всего сайта
   window.remoteDB = database;
 
+  // ОПРЕДЕЛЯЕМ ФУНКЦИИ СРАЗУ (чтобы они были видны основному коду)
+  window.getDB = function() {
+    const local = localStorage.getItem('EKHOO_DB');
+    if (local) return JSON.parse(local);
+    return { users: {}, chats: {}, waves: [], settings: { theme: 'dark' } };
+  };
+
+  window.saveDB = async function(db) {
+    localStorage.setItem('EKHOO_DB', JSON.stringify(db));
+    if (window.remoteDB) {
+      try {
+        await set(ref(window.remoteDB, 'ekhoo_global_db'), db);
+      } catch (e) { console.error("Firebase Sync Error:", e); }
+    }
+  };
+
+  // Слушаем облако
   onValue(dbRef, (snapshot) => {
     const cloudData = snapshot.val();
     if (cloudData) {
       localStorage.setItem('EKHOO_DB', JSON.stringify(cloudData));
-      if (typeof SESSION !== 'undefined' && SESSION.currentChat) {
-         if (window.renderChatMessages) renderChatMessages(SESSION.currentChat);
-      }
+      // Вызываем обновление интерфейса, если функции уже загружены
       if (window.renderWaves) renderWaves();
+      if (typeof SESSION !== 'undefined' && SESSION.currentChat && window.renderChatMessages) {
+        renderChatMessages(SESSION.currentChat);
+      }
     }
   });
 </script>
@@ -2658,24 +2678,5 @@ window.addEventListener('load',startGlitchEffects);
 </script>
 <!-- Hidden admin entry — top-right corner, invisible -->
 <div id="admin-secret-zone" onclick="adminSecretClick()"></div>
-</body>
-</html>
-<script>
-function getDB() {
-  const local = localStorage.getItem('EKHOO_DB');
-  if (local) return JSON.parse(local);
-  return { users: {}, chats: {}, waves: [], settings: { theme: 'dark' } };
-}
-
-async function saveDB(db) {
-  localStorage.setItem('EKHOO_DB', JSON.stringify(db));
-  if (window.remoteDB) {
-    try {
-      const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js");
-      await set(ref(window.remoteDB, 'ekhoo_global_db'), db);
-    } catch (e) { console.error("Firebase Error:", e); }
-  }
-}
-</script>
 </body>
 </html>
