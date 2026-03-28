@@ -70,7 +70,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .lang-btn:hover:not(.active){color:var(--accent);}
 
 /* ======= MAIN LAYOUT ======= */
-#main-screen{display:none;height:100vh;flex-direction:row;position:relative;}
+#main-screen{display:none;height:100vh;height:100dvh;flex-direction:row;position:relative;}
 
 /* SIDEBAR */
 .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg-panel);display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative;z-index:100;transition:transform .3s;}
@@ -398,84 +398,176 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   -webkit-tap-highlight-color:transparent;
 }
 /* ======= RESPONSIVE ======= */
+
+/* dvh — динамическая высота, правильно учитывает адресную строку браузера */
+#auth-screen{height:100vh;height:100dvh;}
+
 @media(max-width:700px){
+  :root{--mnav-h:calc(56px + env(safe-area-inset-bottom,0px));}
+
   body{overflow:hidden;}
-  #main-screen{flex-direction:column;}
-  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);z-index:200;width:min(280px,85vw);min-width:0;}
+  #main-screen{flex-direction:column;height:100dvh;}
+
+  /* Sidebar — слайд слева */
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;
+    transform:translateX(-100%);
+    z-index:400;
+    width:min(280px,85vw);min-width:0;
+    transition:transform .26s cubic-bezier(.4,0,.2,1);
+  }
   .sidebar.open{transform:translateX(0);}
   .sidebar-overlay.show{display:block;}
   .mobile-hamburger{display:none !important;}
   .mobile-nav{display:block;}
+  .sidebar-logo span{display:none;}
 
-  /* viewport: full height minus bottom nav */
-  .viewport{padding-bottom:58px;height:calc(100vh - 58px);}
+  /* Viewport — оставшаяся высота после нижнего бара */
+  .viewport{
+    height:calc(100dvh - var(--mnav-h));
+    padding-bottom:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+  }
 
-  /* general sections */
-  .section{padding:16px 12px 80px;}
+  /* Обычные секции */
+  .section{padding:14px 12px 80px;}
   #section-chat{padding:0;}
   #section-sector-detail{padding:0;}
 
-  /* chat layout: flex column, fill screen */
-  #section-chat{display:flex;flex-direction:column;height:100vh;}
+  /* ── ЧАТ: flex-колонка, занимает 100% viewport ──────── */
+  #section-chat{
+    display:none;
+    flex-direction:column;
+    /* НЕ 100dvh — заполняем родителя .viewport */
+    height:100%;
+    max-height:100%;
+    overflow:hidden;
+  }
   #section-chat.active{display:flex;}
-  .chat-nav{padding:10px 12px;flex-shrink:0;flex-wrap:wrap;gap:6px;}
+
+  .chat-nav{
+    flex-shrink:0;
+    padding:10px 12px;
+    gap:8px;
+    flex-wrap:nowrap;
+    align-items:center;
+    overflow:hidden;
+  }
+  .chat-partner{
+    font-size:12px;letter-spacing:1px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    flex:1;min-width:0;
+  }
   .chat-messages{
-    flex:1;overflow-y:auto;padding:10px 12px 10px;
-    min-height:0;
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:10px 12px 12px;
+    min-height:0;/* критично — иначе flex не сжимает */
   }
   .chat-input-bar{
-    flex-shrink:0;padding:8px 10px;
+    flex-shrink:0;
+    position:relative;/* убираем sticky — flex держит снизу */
+    padding:8px 10px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
     display:flex;flex-wrap:nowrap;align-items:center;
     gap:6px;min-height:52px;
     border-top:1px solid var(--border);
     background:var(--bg-card);
+    z-index:10;
   }
-  .chat-input-bar .btn{
-    height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;
-  }
-  .chat-input-bar .chat-input{
-    flex:1;min-width:0;height:38px;font-size:14px;padding:8px 10px;
-  }
+  .chat-input-bar .btn{height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;}
+  .chat-input-bar .chat-input{flex:1;min-width:0;height:38px;font-size:16px;padding:8px 10px;}
   .chat-input-bar .picker-wrap{flex-shrink:0;}
-  .voice-rec-bar{padding:8px 10px;gap:8px;}
+  .voice-rec-bar{flex-shrink:0;padding:8px 10px;gap:8px;}
   .voice-rec-bar .btn{height:34px;padding:0 10px;}
 
-  /* sector detail same as chat */
-  #section-sector-detail{display:flex;flex-direction:column;height:100vh;}
-  #section-sector-detail.active{display:flex;}
-  .sector-detail-nav{flex-shrink:0;padding:10px 12px;flex-wrap:wrap;gap:6px;overflow:hidden;}
-  .sector-detail-nav #sector-detail-actions{
-    display:flex;flex-wrap:wrap;gap:4px;margin-left:0;width:100%;margin-top:4px;
+  /* ── СЕКТОРЫ: то же самое ───────────────────────────── */
+  #section-sector-detail{
+    display:none;
+    flex-direction:column;
+    height:100%;
+    max-height:100%;
+    overflow:hidden;
   }
-  .sector-chat{flex:1;overflow-y:auto;padding:10px 12px;min-height:0;}
+  #section-sector-detail.active{display:flex;}
+  .sector-detail-nav{
+    flex-shrink:0;padding:10px 12px;
+    flex-wrap:wrap;gap:6px;overflow:hidden;
+  }
+  .sector-detail-nav #sector-detail-actions{
+    display:flex;flex-wrap:wrap;gap:4px;
+    margin-left:0;width:100%;margin-top:4px;
+  }
+  .sector-chat{
+    flex:1;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:10px 12px 12px;min-height:0;
+  }
   .sector-input-bar{
-    flex-shrink:0;padding:8px 10px;
+    flex-shrink:0;position:relative;
+    padding:8px 10px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
     display:flex;flex-wrap:nowrap;align-items:center;
     gap:6px;min-height:52px;
     border-top:1px solid var(--border);background:var(--bg-card);
+    z-index:10;
   }
   .sector-input-bar .btn{height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;}
-  .sector-input-bar .chat-input{flex:1;min-width:0;height:38px;padding:8px 10px;}
+  .sector-input-bar .chat-input{flex:1;min-width:0;height:38px;font-size:16px;padding:8px 10px;}
 
-  /* messages */
-  .msg-col{max-width:78%;}
-  .msg-img{max-width:160px;}
-  .msg-bubble{font-size:13px;padding:8px 12px;}
+  /* ── СТИКЕР-ПИКЕР: fixed, не вылетает за экран ──────── */
+  .sticker-picker{
+    position:fixed !important;
+    bottom:calc(var(--mnav-h) + 60px) !important;
+    left:8px !important;right:8px !important;
+    width:auto !important;
+    grid-template-columns:repeat(auto-fill,minmax(44px,1fr)) !important;
+    max-height:180px;overflow-y:auto;
+  }
+  #section-chat .sticker-picker,
+  #section-sector-detail .sticker-picker{
+    bottom:calc(52px + env(safe-area-inset-bottom,0px) + 10px) !important;
+  }
 
-  /* misc */
+  /* ── СООБЩЕНИЯ ────────────────────────────────────────── */
+  .msg-col{max-width:82%;}
+  .msg-img{max-width:min(180px,65vw);}
+  .msg-bubble{font-size:14px;padding:9px 13px;}
+
+  /* ── TOAST над нижним меню ──────────────────────────── */
+  .toast{
+    bottom:calc(var(--mnav-h) + 10px);
+    right:12px;left:12px;
+    text-align:center;
+  }
+
+  /* ── ОСТАЛЬНЫЕ ЭЛЕМЕНТЫ ─────────────────────────────── */
   .compose-card{padding:12px;}
   .wave-card{padding:12px 14px;}
+  .wave-text{font-size:14px;}
+  .wave-footer{gap:14px;}
   .profile-hero-body{padding:0 12px 20px;}
-  .settings-block{padding:16px 16px;}
+  .settings-block{padding:16px;}
   .reply-card{margin-left:0;}
+  .reply-form{flex-wrap:wrap;gap:8px;padding:12px;}
   .btn{height:40px;}
-  .btn-sm{height:34px;}
-  .sticker-picker{bottom:calc(100% + 4px);}
-  .section-title{font-size:14px;letter-spacing:2px;margin-bottom:16px;}
+  .btn-sm{height:34px;font-size:10px;}
+  .btn-full{height:48px;}
+  .section-title{font-size:13px;letter-spacing:2px;margin-bottom:14px;}
+  .modal-box{padding:20px 16px;}
+  .sector-card{padding:14px 16px;}
+  .notif-item{padding:10px 12px;}
+  .profile-actions{gap:6px;}
+  .profile-meta{gap:12px;}
 
-  /* hide sidebar nav labels on very small screens */
-  .sidebar-logo span{display:none;}
+  /* iOS не делает zoom при тапе на поле ввода */
+  .cyber-field input,.cyber-field select,
+  .edit-input,.edit-textarea,.search-input{font-size:16px !important;}
 }
+
 @media(min-width:701px){
   .mobile-hamburger{display:none !important;}
   .mobile-nav{display:none !important;}
@@ -1483,6 +1575,27 @@ function buildMain(){
   startPingMonitor();
   checkGlobalState();
   updateNotifBadge();
+  if(window.innerWidth<=700) _initMobileKeyboard();
+}
+
+// Скролл вниз при открытии клавиатуры на мобильном
+function _initMobileKeyboard(){
+  const scrollDown=()=>{
+    const cm=document.getElementById('chat-messages');
+    if(cm) cm.scrollTop=cm.scrollHeight;
+    const sm=document.getElementById('sector-messages');
+    if(sm) sm.scrollTop=sm.scrollHeight;
+  };
+  document.addEventListener('focusin',e=>{
+    if(e.target.matches('.chat-input,#sector-input')){
+      setTimeout(scrollDown,350);
+    }
+  },{passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',()=>{
+      setTimeout(scrollDown,100);
+    },{passive:true});
+  }
 }
 
 function renderSidebarAvatar(){
