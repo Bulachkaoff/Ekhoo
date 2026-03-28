@@ -398,84 +398,184 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   -webkit-tap-highlight-color:transparent;
 }
 /* ======= RESPONSIVE ======= */
+
+/* dvh корректно учитывает адресную строку браузера на телефоне */
+#main-screen{display:none;height:100vh;height:100dvh;flex-direction:row;position:relative;}
+
 @media(max-width:700px){
+  /* Высота нижнего бара: 56px кнопки + safe area (выемка iPhone) */
+  :root{--mnav-h:calc(56px + env(safe-area-inset-bottom,0px));}
+
   body{overflow:hidden;}
-  #main-screen{flex-direction:column;}
-  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);z-index:200;width:min(280px,85vw);min-width:0;}
+  #main-screen{flex-direction:column;height:100dvh;}
+
+  /* Sidebar — слайд слева, поверх всего */
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;
+    transform:translateX(-100%);
+    z-index:400;
+    width:min(280px,85vw);min-width:0;
+    transition:transform .26s cubic-bezier(.4,0,.2,1);
+  }
   .sidebar.open{transform:translateX(0);}
   .sidebar-overlay.show{display:block;}
   .mobile-hamburger{display:none !important;}
   .mobile-nav{display:block;}
+  .sidebar-logo span{display:none;}
 
-  /* viewport: full height minus bottom nav */
-  .viewport{padding-bottom:58px;height:calc(100vh - 58px);}
-
-  /* general sections */
-  .section{padding:16px 12px 80px;}
-  #section-chat{padding:0;}
-  #section-sector-detail{padding:0;}
-
-  /* chat layout: flex column, fill screen */
-  #section-chat{display:flex;flex-direction:column;height:100vh;}
-  #section-chat.active{display:flex;}
-  .chat-nav{padding:10px 12px;flex-shrink:0;flex-wrap:wrap;gap:6px;}
-  .chat-messages{
-    flex:1;overflow-y:auto;padding:10px 12px 10px;
-    min-height:0;
+  /* Viewport — всё пространство между верхом и нижним баром */
+  .viewport{
+    height:calc(100dvh - var(--mnav-h));
+    padding-bottom:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
   }
+
+  /* Обычные секции */
+  .section{padding:14px 12px 80px;}
+
+  /* ══════════════════════════════════════════════════
+     ЧАТ — главная проблема была здесь:
+     height:100vh выходил за пределы .viewport,
+     бар ввода уходил под нижнее меню.
+     Решение: height:100% — заполняет .viewport, не больше.
+  ══════════════════════════════════════════════════ */
+  #section-chat{
+    padding:0;
+    display:none;
+    flex-direction:column;
+    height:100%;        /* 100% от .viewport, НЕ от экрана */
+    max-height:100%;
+    overflow:hidden;
+  }
+  #section-chat.active{display:flex;}
+
+  .chat-nav{
+    flex-shrink:0;padding:10px 12px;
+    gap:8px;flex-wrap:nowrap;align-items:center;overflow:hidden;
+  }
+  .chat-partner{
+    font-size:12px;letter-spacing:1px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    flex:1;min-width:0;
+  }
+  .chat-messages{
+    flex:1;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:10px 12px 12px;
+    min-height:0; /* без этого flex не сжимает блок */
+  }
+  /* Бар ввода — прибит к низу flex-контейнера, НЕ к низу экрана */
   .chat-input-bar{
-    flex-shrink:0;padding:8px 10px;
+    flex-shrink:0;
+    position:relative; /* убираем sticky — flex держит снизу */
+    padding:8px 10px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
     display:flex;flex-wrap:nowrap;align-items:center;
-    gap:6px;min-height:52px;
+    gap:5px;min-height:52px;
     border-top:1px solid var(--border);
     background:var(--bg-card);
+    z-index:10;
   }
-  .chat-input-bar .btn{
-    height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;
-  }
-  .chat-input-bar .chat-input{
-    flex:1;min-width:0;height:38px;font-size:14px;padding:8px 10px;
-  }
+  .chat-input-bar .btn{height:38px;min-width:34px;padding:0 8px;font-size:15px;flex-shrink:0;}
+  .chat-input-bar .chat-input{flex:1;min-width:0;height:38px;font-size:16px;padding:8px 10px;}
   .chat-input-bar .picker-wrap{flex-shrink:0;}
-  .voice-rec-bar{padding:8px 10px;gap:8px;}
+  .voice-rec-bar{
+    flex-shrink:0;padding:8px 10px;gap:8px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  }
   .voice-rec-bar .btn{height:34px;padding:0 10px;}
 
-  /* sector detail same as chat */
-  #section-sector-detail{display:flex;flex-direction:column;height:100vh;}
+  /* ══════════════════════════════════════════════════
+     СЕКТОР — та же проблема, то же решение
+  ══════════════════════════════════════════════════ */
+  #section-sector-detail{
+    padding:0;
+    display:none;
+    flex-direction:column;
+    height:100%;
+    max-height:100%;
+    overflow:hidden;
+  }
   #section-sector-detail.active{display:flex;}
-  .sector-detail-nav{flex-shrink:0;padding:10px 12px;flex-wrap:wrap;gap:6px;overflow:hidden;}
+
+  .sector-detail-nav{
+    flex-shrink:0;padding:10px 12px;
+    flex-wrap:wrap;gap:6px;overflow:hidden;
+  }
   .sector-detail-nav #sector-detail-actions{
-    display:flex;flex-wrap:wrap;gap:4px;margin-left:0;width:100%;margin-top:4px;
+    display:flex;flex-wrap:wrap;gap:4px;
+    margin-left:0;width:100%;margin-top:4px;
   }
-  .sector-chat{flex:1;overflow-y:auto;padding:10px 12px;min-height:0;}
+  .sector-chat{
+    flex:1;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:10px 12px 12px;min-height:0;
+  }
   .sector-input-bar{
-    flex-shrink:0;padding:8px 10px;
+    flex-shrink:0;position:relative;
+    padding:8px 10px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
     display:flex;flex-wrap:nowrap;align-items:center;
-    gap:6px;min-height:52px;
+    gap:5px;min-height:52px;
     border-top:1px solid var(--border);background:var(--bg-card);
+    z-index:10;
   }
-  .sector-input-bar .btn{height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;}
-  .sector-input-bar .chat-input{flex:1;min-width:0;height:38px;padding:8px 10px;}
+  .sector-input-bar .btn{height:38px;min-width:34px;padding:0 8px;font-size:15px;flex-shrink:0;}
+  .sector-input-bar .chat-input{flex:1;min-width:0;height:38px;font-size:16px;padding:8px 10px;}
 
-  /* messages */
-  .msg-col{max-width:78%;}
-  .msg-img{max-width:160px;}
-  .msg-bubble{font-size:13px;padding:8px 12px;}
+  /* ══════════════════════════════════════════════════
+     СТИКЕР-ПИКЕР — fixed чтобы не вылетал за экран
+  ══════════════════════════════════════════════════ */
+  .sticker-picker{
+    position:fixed !important;
+    bottom:calc(var(--mnav-h) + 64px) !important;
+    left:8px !important;right:8px !important;
+    width:auto !important;
+    grid-template-columns:repeat(auto-fill,minmax(44px,1fr)) !important;
+    max-height:160px;overflow-y:auto;
+  }
+  /* в чате и секторе — над баром ввода */
+  #section-chat .sticker-picker,
+  #section-sector-detail .sticker-picker{
+    bottom:calc(52px + env(safe-area-inset-bottom,0px) + 8px) !important;
+  }
 
-  /* misc */
+  /* ══════════════════════════════════════════════════
+     СООБЩЕНИЯ И ОСТАЛЬНЫЕ ЭЛЕМЕНТЫ
+  ══════════════════════════════════════════════════ */
+  .msg-col{max-width:82%;}
+  .msg-img{max-width:min(180px,65vw);}
+  .msg-bubble{font-size:14px;padding:9px 13px;}
+
+  /* Toast над нижним меню */
+  .toast{bottom:calc(var(--mnav-h) + 10px);right:12px;left:12px;text-align:center;}
+
   .compose-card{padding:12px;}
   .wave-card{padding:12px 14px;}
+  .wave-text{font-size:14px;}
   .profile-hero-body{padding:0 12px 20px;}
-  .settings-block{padding:16px 16px;}
+  .settings-block{padding:16px;}
   .reply-card{margin-left:0;}
+  .reply-form{flex-wrap:wrap;gap:8px;padding:12px;}
   .btn{height:40px;}
-  .btn-sm{height:34px;}
-  .sticker-picker{bottom:calc(100% + 4px);}
-  .section-title{font-size:14px;letter-spacing:2px;margin-bottom:16px;}
+  .btn-sm{height:34px;font-size:10px;}
+  .btn-full{height:48px;}
+  .section-title{font-size:13px;letter-spacing:2px;margin-bottom:14px;}
+  .modal-box{padding:20px 16px;}
+  .sector-card{padding:14px 16px;}
+  .notif-item{padding:10px 12px;}
+  .profile-actions{gap:6px;}
+  .profile-meta{gap:12px;}
+  .admin-row{flex-wrap:wrap;}
+  .admin-input{min-width:120px;}
 
-  /* hide sidebar nav labels on very small screens */
-  .sidebar-logo span{display:none;}
+  /* iOS: font-size 16px отключает авто-зум при тапе на поле */
+  .cyber-field input,.cyber-field select,
+  .edit-input,.edit-textarea,.search-input{font-size:16px !important;}
 }
+
 @media(min-width:701px){
   .mobile-hamburger{display:none !important;}
   .mobile-nav{display:none !important;}
@@ -706,17 +806,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         <div id="sector-detail-actions" style="display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0;"></div>
       </div>
       <div class="sector-chat" id="sector-messages"></div>
-      <!-- Голосовая запись для сектора -->
-      <div class="voice-rec-bar" id="sector-voice-rec-bar">
-        <div class="rec-dot"></div>
-        <span id="sector-voice-rec-label"></span>
-        <span id="sector-voice-rec-timer" style="font-family:var(--font-mono);font-size:11px;color:var(--error);margin-left:4px;">0:00</span>
-        <button class="btn btn-ghost btn-sm" id="sector-voice-cancel-btn" onclick="stopSectorVoice(false)"></button>
-        <button class="btn btn-accent btn-sm" id="sector-voice-send-btn" onclick="stopSectorVoice(true)"></button>
-      </div>
       <div class="sector-input-bar" id="sector-input-wrap">
         <button class="btn btn-ghost btn-sm" onclick="attachSectorPhoto()" style="padding:0 12px;font-size:16px;">📷</button>
-        <button class="btn btn-ghost btn-sm" onclick="startSectorVoice()" style="padding:0 10px;font-size:16px;" title="Voice">🎙</button>
         <div class="picker-wrap">
           <button class="sticker-btn" onclick="togglePicker('sector-sticker-picker')" title="Stickers">😀</button>
           <div class="sticker-picker" id="sector-sticker-picker"></div>
@@ -768,21 +859,21 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     <!-- ADMIN PANEL -->
     <div class="section admin-panel" id="section-admin">
       <div class="section-title" style="color:var(--error);">
-        <span style="letter-spacing:4px;">ROOT PANEL v.10</span>
+        <span style="letter-spacing:4px;">ROOT PANEL v.9</span>
         <div style="flex:1;height:1px;background:linear-gradient(to right,var(--error),transparent);"></div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-label" id="admin-lbl-broadcast"></div>
+        <div class="admin-label">GLOBAL BROADCAST</div>
         <div class="admin-row">
           <input type="text" class="admin-input" id="admin-broadcast-input" placeholder="SYSTEM CRITICAL: ...">
-          <button class="btn-admin gold" id="admin-transmit-btn" onclick="adminBroadcast()"></button>
-          <button class="btn-admin" id="admin-clear-btn" onclick="adminClearBroadcast()"></button>
+          <button class="btn-admin gold" onclick="adminBroadcast()">TRANSMIT</button>
+          <button class="btn-admin" onclick="adminClearBroadcast()">CLEAR</button>
         </div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-label" id="admin-lbl-nuke"></div>
+        <div class="admin-label">NUKE FEED</div>
         <div class="admin-row">
           <input type="text" class="admin-input" id="admin-nuke-user" placeholder="username (empty = all)">
           <select class="admin-input" id="admin-nuke-time" style="max-width:140px;">
@@ -790,22 +881,22 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
             <option value="168">Last 7 days</option>
             <option value="0">ALL TIME</option>
           </select>
-          <button class="btn-admin" id="admin-nuke-btn" onclick="adminNukeFeed()"></button>
+          <button class="btn-admin" onclick="adminNukeFeed()">NUKE</button>
         </div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-label" id="admin-lbl-shadow"></div>
+        <div class="admin-label">SHADOWBAN — ISOLATION</div>
         <div class="admin-row">
           <input type="text" class="admin-input" id="admin-shadow-user" placeholder="username">
-          <button class="btn-admin" id="admin-isolate-btn" onclick="adminShadowban()"></button>
-          <button class="btn-admin gold" id="admin-restore-btn" onclick="adminUnshadowban()"></button>
+          <button class="btn-admin" onclick="adminShadowban()">ISOLATE</button>
+          <button class="btn-admin gold" onclick="adminUnshadowban()">RESTORE</button>
         </div>
         <div id="admin-shadow-list" class="admin-hint" style="margin-top:8px;"></div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-label" id="admin-lbl-roles"></div>
+        <div class="admin-label">ROLE MANAGEMENT</div>
         <div class="admin-row">
           <input type="text" class="admin-input" id="admin-role-user" placeholder="username">
           <select class="admin-input" id="admin-role-sel" style="max-width:130px;">
@@ -814,28 +905,28 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
             <option value="MOD">MOD</option>
             <option value="ADMIN">ADMIN</option>
           </select>
-          <button class="btn-admin gold" id="admin-assign-btn" onclick="adminSetRole()"></button>
+          <button class="btn-admin gold" onclick="adminSetRole()">ASSIGN</button>
         </div>
         <div id="admin-roles-list" style="margin-top:10px;"></div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-label" id="admin-lbl-maint"></div>
+        <div class="admin-label">MAINTENANCE MODE</div>
         <div class="admin-row">
-          <button class="btn-admin" id="admin-maint-btn" onclick="adminToggleMaintenance()"></button>
-          <span class="admin-hint" id="admin-maint-status"></span>
+          <button class="btn-admin" id="admin-maint-btn" onclick="adminToggleMaintenance()">ENGAGE</button>
+          <span class="admin-hint" id="admin-maint-status">MODE: OFF</span>
         </div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-label" id="admin-lbl-wipe"></div>
+        <div class="admin-label">DATABASE WIPE</div>
         <div class="admin-row">
-          <button class="btn-admin" onclick="wipeDatabase()" id="admin-wipe-btn"></button>
-          <span class="admin-hint" id="admin-irreversible-lbl"></span>
+          <button class="btn-admin" onclick="wipeDatabase()">WIPE ALL DATA</button>
+          <span class="admin-hint">IRREVERSIBLE</span>
         </div>
       </div>
 
-      <button class="btn-admin" id="admin-exit-btn" onclick="gotoSection('streams')"></button>
+      <button class="btn-admin" onclick="gotoSection('streams')">EXIT PANEL</button>
     </div>
 
   </div><!-- /viewport -->
@@ -951,21 +1042,6 @@ ru:{
   sector_members_list:'УЧАСТНИКИ',sector_kick:'ИСКЛЮЧИТЬ',sector_owner:'ВЛАДЕЛЕЦ',
   sector_edit:'НАСТРОЙКИ ГРУППЫ',sector_delete_msg:'УДАЛИТЬ',
   photo_zoom_hint:'Нажмите на фото для увеличения',reply_add_photo:'📷 ФОТО',
-  sector_join_to_read:'ВСТУПИТЕ В ГРУППУ ЧТОБЫ ЧИТАТЬ СООБЩЕНИЯ',
-  sector_joined_chat:'вступил в группу',sector_left_chat:'покинул группу',
-  sector_kicked_chat:'был исключён из группы',
-  admin_lbl_broadcast:'ГЛОБАЛЬНОЕ СООБЩЕНИЕ',admin_lbl_nuke:'УДАЛЕНИЕ ВОЛН',
-  admin_lbl_shadow:'ИЗОЛЯЦИЯ ОПЕРАТОРА',admin_lbl_roles:'УПРАВЛЕНИЕ РОЛЯМИ',
-  admin_lbl_maint:'РЕЖИМ ОБСЛУЖИВАНИЯ',admin_lbl_wipe:'ОЧИСТКА БАЗЫ',
-  admin_transmit:'ОТПРАВИТЬ',admin_clear:'ОЧИСТИТЬ',admin_nuke_btn:'УДАЛИТЬ',
-  admin_isolate:'ИЗОЛИРОВАТЬ',admin_restore:'ВОССТАНОВИТЬ',admin_assign:'НАЗНАЧИТЬ',
-  admin_engage:'ВКЛЮЧИТЬ',admin_disengage:'ОТКЛЮЧИТЬ',
-  admin_exit:'ВЫЙТИ ИЗ ПАНЕЛИ',admin_irreversible:'НЕОБРАТИМО',
-  admin_no_isolated:'Нет изолированных',admin_no_roles:'Нет особых ролей',
-  admin_isolated_label:'Изолированы: ',admin_mode_on:'РЕЖИМ: ВКЛ',admin_mode_off:'РЕЖИМ: ВЫКЛ',
-  news_default_1:'Ekhoo v.10.0: обновление запущено.',
-  news_default_2:'Голосовые в группах, роли у пользователей, приватность групп.',
-  news_default_3:'Сообщения о входе/выходе из группы теперь отображаются.',
 },
 en:{
   nav_streams:'STREAMS',nav_messages:'MESSAGES',nav_profile:'MY PROFILE',nav_settings:'SETTINGS',
@@ -1023,21 +1099,6 @@ en:{
   sector_members_list:'MEMBERS',sector_kick:'KICK',sector_owner:'OWNER',
   sector_edit:'GROUP SETTINGS',sector_delete_msg:'DELETE',
   photo_zoom_hint:'Click photo to zoom',reply_add_photo:'📷 PHOTO',
-  sector_join_to_read:'JOIN THE GROUP TO READ MESSAGES',
-  sector_joined_chat:'joined the group',sector_left_chat:'left the group',
-  sector_kicked_chat:'was removed from the group',
-  admin_lbl_broadcast:'GLOBAL BROADCAST',admin_lbl_nuke:'NUKE FEED',
-  admin_lbl_shadow:'SHADOWBAN — ISOLATION',admin_lbl_roles:'ROLE MANAGEMENT',
-  admin_lbl_maint:'MAINTENANCE MODE',admin_lbl_wipe:'DATABASE WIPE',
-  admin_transmit:'TRANSMIT',admin_clear:'CLEAR',admin_nuke_btn:'NUKE',
-  admin_isolate:'ISOLATE',admin_restore:'RESTORE',admin_assign:'ASSIGN',
-  admin_engage:'ENGAGE',admin_disengage:'DISENGAGE',
-  admin_exit:'EXIT PANEL',admin_irreversible:'IRREVERSIBLE',
-  admin_no_isolated:'No isolated operators',admin_no_roles:'No special roles',
-  admin_isolated_label:'Isolated: ',admin_mode_on:'MODE: ON',admin_mode_off:'MODE: OFF',
-  news_default_1:'Ekhoo v.10.0: update launched.',
-  news_default_2:'Voice in groups, user roles, group privacy.',
-  news_default_3:'Join/leave messages now shown in groups.',
 }};
 
 let LANG=localStorage.getItem('ekhoo_lang')||'ru';
@@ -1061,18 +1122,6 @@ function applyLang(){
     'sector-send-btn':'sector_post',
     'dm-title':'dm_title','dm-body':'dm_body','dm-confirm':'dm_confirm',
     'dev-lbl-desktop':'dev_desktop','dev-lbl-mobile':'dev_mobile','dev-lbl-tablet':'dev_tablet',
-    // Admin panel i18n
-    'admin-lbl-broadcast':'admin_lbl_broadcast','admin-lbl-nuke':'admin_lbl_nuke',
-    'admin-lbl-shadow':'admin_lbl_shadow','admin-lbl-roles':'admin_lbl_roles',
-    'admin-lbl-maint':'admin_lbl_maint','admin-lbl-wipe':'admin_lbl_wipe',
-    'admin-transmit-btn':'admin_transmit','admin-clear-btn':'admin_clear',
-    'admin-nuke-btn':'admin_nuke_btn','admin-isolate-btn':'admin_isolate',
-    'admin-restore-btn':'admin_restore','admin-assign-btn':'admin_assign',
-    'admin-exit-btn':'admin_exit','admin-irreversible-lbl':'admin_irreversible',
-    'admin-wipe-btn':'admin_lbl_wipe',
-    // Sector voice
-    'sector-voice-rec-label':'voice_recording',
-    'sector-voice-cancel-btn':'voice_cancel','sector-voice-send-btn':'voice_send',
   };
   Object.entries(map).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=T(key);});
   const si=document.getElementById('search-input');if(si)si.placeholder=T('search_placeholder');
@@ -1391,8 +1440,11 @@ function miniAv(username,size=28){
   const r=Math.max(3,Math.floor(size*.15));const clip=`polygon(${r}px 0%,100% 0%,calc(100% - ${r}px) 100%,0% 100%)`;
   const fs=Math.floor(size*.42);
   if(av)return`<img src="${av}" style="width:${size}px;height:${size}px;clip-path:${clip};object-fit:cover;flex-shrink:0;display:inline-block;vertical-align:middle;">`;
-  const bg=st.online?'var(--accent)':'var(--border)';const fg=st.online?'var(--bg-dark)':'var(--text-white)';
-  return`<span style="width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:${fs}px;background:${bg};color:${fg};clip-path:${clip};flex-shrink:0;vertical-align:middle;">${esc(username[0].toUpperCase())}</span>`;
+  // online — зелёный фон, offline/unknown — тёмный с рамкой
+  const bg=st.online?'var(--accent)':'var(--bg-card)';
+  const fg=st.online?'var(--bg-dark)':'var(--text-gray)';
+  const border=st.online?'':'border:1px solid var(--border);';
+  return`<span style="width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:${fs}px;background:${bg};color:${fg};clip-path:${clip};flex-shrink:0;vertical-align:middle;${border}">${esc(username[0].toUpperCase())}</span>`;
 }
 
 function fmtTime(iso){
@@ -1530,10 +1582,45 @@ function buildMain(){
   if(!db.users[SESSION.user].show_news)document.getElementById('news-banner').style.display='none';
   renderNews();renderFeed();
   setInterval(()=>{updateActivity(SESSION.user);renderSidebarStatus();},60000);
+  // Обновляем статусы в ленте каждые 30 сек (чтобы онлайн/офлайн был актуальным)
+  setInterval(()=>{
+    if(SESSION.user){
+      try{renderFeed();}catch(e){}
+      // обновляем статус в открытом чате
+      if(SESSION.currentChat){
+        const st=getUserStatus(SESSION.currentChat);
+        const el=document.getElementById('chat-partner-status');
+        if(el){el.textContent=st.text;el.style.color=st.color;}
+      }
+    }
+  },30000);
   initAllPickers();
   startPingMonitor();
   checkGlobalState();
   updateNotifBadge();
+  // Мобильный: скролл к низу при открытии клавиатуры
+  if(window.innerWidth<=700) _initMobileUX();
+}
+
+function _initMobileUX(){
+  const scrollDown=()=>{
+    const cm=document.getElementById('chat-messages');
+    if(cm) cm.scrollTop=cm.scrollHeight;
+    const sm=document.getElementById('sector-messages');
+    if(sm) sm.scrollTop=sm.scrollHeight;
+  };
+  // При фокусе на поле — ждём открытие клавиатуры и скроллим
+  document.addEventListener('focusin',e=>{
+    if(e.target.matches('.chat-input,#sector-input')){
+      setTimeout(scrollDown,350);
+    }
+  },{passive:true});
+  // visualViewport resize — клавиатура открылась/закрылась
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',()=>{
+      setTimeout(scrollDown,100);
+    },{passive:true});
+  }
 }
 
 function renderSidebarAvatar(){
@@ -1631,7 +1718,7 @@ function waveHTML(w){
   return`<div class="wave-card${w.gold?' gold-wave':''}" style="border-color:${bc}">
     <div class="wave-header">
       ${miniAv(w.author,26)}
-      <span class="wave-author" onclick="showProfile('${esc(w.author)}')">${esc(w.author)}</span>${roleBadgeHTML(w.author)}
+      <span class="wave-author" onclick="showProfile('${esc(w.author)}')">${esc(w.author)}</span>
       <span class="wave-status" style="color:${st.color}">${esc(st.text)}</span>
       <span class="wave-time">${fmtTime(w.time)}</span>
       ${isMe?`<button class="delete-btn" onclick="deleteWave('${w.id}')">${T('destruct')}</button>`:''}
@@ -1679,7 +1766,7 @@ function openDetails(wid){
   let html=`<div class="wave-card${wave.gold?' gold-wave':''}">
     <div class="wave-header">
       ${miniAv(wave.author,26)}
-      <span class="wave-author" onclick="showProfile('${esc(wave.author)}')">${esc(wave.author)}</span>${roleBadgeHTML(wave.author)}
+      <span class="wave-author" onclick="showProfile('${esc(wave.author)}')">${esc(wave.author)}</span>
       <span class="wave-status" style="color:${st.color}">${esc(st.text)}</span>
       <span class="wave-time">${fmtTime(wave.time)}</span>
     </div>
@@ -1777,12 +1864,24 @@ function renderActiveChats(){
 function openChat(partner){
   SESSION.currentChat=partner;SESSION.draftChatImg=null;
   const st=getUserStatus(partner);
-  document.getElementById('chat-partner-name').innerHTML=esc(partner)+roleBadgeHTML(partner);
+  document.getElementById('chat-partner-name').textContent=partner;
   document.getElementById('chat-partner-status').textContent=st.text;
   document.getElementById('chat-partner-status').style.color=st.color;
   document.getElementById('chat-nav-av').innerHTML=miniAv(partner,32);
   document.getElementById('chat-input').placeholder=T('chat_placeholder');
-  renderChatMessages(partner);gotoSection('chat');document.getElementById('chat-input').focus();
+  renderChatMessages(partner);
+  gotoSection('chat');
+  document.getElementById('chat-input').focus();
+  // Обновим статус после загрузки если был UNKNOWN
+  if(!_dbLoaded){
+    loadDB().then(()=>{
+      if(SESSION.currentChat!==partner)return;
+      const st2=getUserStatus(partner);
+      const el=document.getElementById('chat-partner-status');
+      if(el){el.textContent=st2.text;el.style.color=st2.color;}
+      document.getElementById('chat-nav-av').innerHTML=miniAv(partner,32);
+    }).catch(()=>{});
+  }
 }
 
 function renderChatMessages(partner){
@@ -1827,7 +1926,12 @@ document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key===
 // ============================================================
 function showProfile(username){
   updateActivity(SESSION.user);
-  const db=getDB();const u=db.users[username];if(!u)return;
+  const db=getDB();const u=db.users[username];
+  if(!u){
+    // Данные ещё грузятся из Firebase — ждём и повторим
+    if(!_dbLoaded){loadDB().then(()=>showProfile(username)).catch(()=>{});}
+    return;
+  }
   const st=getUserStatus(username);const isMe=username===SESSION.user;
   const locale=LANG==='ru'?'ru-RU':'en-GB';
   const joined=u.joined?new Date(u.joined).toLocaleDateString(locale):'—';
@@ -2089,26 +2193,6 @@ function resetVoiceUI(uid) {
 // ============================================================
 // SECTORS (GROUP CHATS)
 // ============================================================
-
-// ── Роль пользователя и бейдж ─────────────────────────────
-function getUserRole(username){
-  const db=getDB();
-  return (db.users[username]&&db.users[username].role)||'USER';
-}
-function roleBadgeHTML(username){
-  const role=getUserRole(username);
-  if(!role||role==='USER') return '';
-  return `<span class="role-badge role-${role}" style="font-size:8px;padding:1px 6px;margin-left:5px;vertical-align:middle;">${role}</span>`;
-}
-
-// ── Системное сообщение в чат группы ─────────────────────
-function addSectorSystemMsg(sid, text){
-  const db=freshSectors();
-  if(!db.sectorChats) db.sectorChats={};
-  if(!db.sectorChats[sid]) db.sectorChats[sid]=[];
-  db.sectorChats[sid].push({id:'sys_'+Date.now(),system:true,m:text,t:new Date().toISOString()});
-  saveDB(db);
-}
 const SECTOR_ICONS = ['🔷','🔴','🟡','🟢','🟣','⚡','🔥','💀','🌐','🎯','⚔️','🛡️'];
 let _currentSector = null;
 let _sectorTab = 'all';
@@ -2239,17 +2323,13 @@ function joinSector(sid) {
     saveDB(db); renderSectors(); toast(T('sector_pending')); return;
   }
   s.members.push(SESSION.user);
-  saveDB(db);
-  addSectorSystemMsg(sid, `⚡ ${SESSION.user} ${T('sector_joined_chat')}`);
-  renderSectors(); toast(T('sector_joined_ok'));
+  saveDB(db); renderSectors(); toast(T('sector_joined_ok'));
 }
 function approveSectorRequest(sid, user) {
   const db=freshSectors(); const s=db.sectors.find(x=>x.id===sid); if(!s)return;
   s.pendingRequests=(s.pendingRequests||[]).filter(u=>u!==user);
   if(!s.members.includes(user)) s.members.push(user);
-  saveDB(db);
-  addSectorSystemMsg(sid, `⚡ ${user} ${T('sector_joined_chat')}`);
-  openSectorProfile(sid);
+  saveDB(db); openSectorProfile(sid);
 }
 function rejectSectorRequest(sid, user) {
   const db=freshSectors(); const s=db.sectors.find(x=>x.id===sid); if(!s)return;
@@ -2260,16 +2340,13 @@ function kickMember(sid, user) {
   if(!confirm('Remove '+user+'?')) return;
   const db=freshSectors(); const s=db.sectors.find(x=>x.id===sid); if(!s)return;
   s.members=s.members.filter(u=>u!==user);
-  saveDB(db);
-  addSectorSystemMsg(sid, `🚫 ${user} ${T('sector_kicked_chat')}`);
-  openSectorProfile(sid);
+  saveDB(db); openSectorProfile(sid);
 }
 
 function leaveSector(sid) {
   const db = freshSectors();
   const s = db.sectors.find(x => x.id === sid);
   if (!s) return;
-  addSectorSystemMsg(sid, `🚪 ${SESSION.user} ${T('sector_left_chat')}`);
   s.members = s.members.filter(m => m !== SESSION.user);
   saveDB(db);
   gotoSection('sectors');
@@ -2297,19 +2374,9 @@ function openSector(sid) {
     + (isOwner ? `<button class="btn btn-ghost btn-sm" style="margin-left:6px;" onclick="openSectorSettings('${sid}')">${T('sector_edit')}</button>` : '')
     + (!isMember ? `<button class="btn btn-accent btn-sm" style="margin-left:6px;" onclick="joinSector('${sid}');openSector('${sid}')">${T('sector_join')}</button>` : '');
   const inputWrap = document.getElementById('sector-input-wrap');
-  const voiceBar = document.getElementById('sector-voice-rec-bar');
   if (inputWrap) inputWrap.style.display = isMember ? 'flex' : 'none';
-  if (voiceBar) voiceBar.style.display = 'none';
   buildStickerPicker('sector-sticker-picker', 'sendSectorSticker');
-  // Приватность: не-участники не видят сообщения и участников
-  if (!isMember) {
-    const mc = document.getElementById('sector-messages');
-    if (mc) mc.innerHTML = `<div class="empty-state" style="padding:60px 20px;">
-      🔒<br><br>${T('sector_join_to_read')}
-    </div>`;
-  } else {
-    renderSectorMessages(sid);
-  }
+  renderSectorMessages(sid);
   gotoSection('sector-detail');
   document.getElementById('sector-input').placeholder = T('chat_placeholder');
   document.getElementById('sector-send-btn').textContent = T('sector_post');
@@ -2321,11 +2388,6 @@ function openSector(sid) {
 function openSectorProfile(sid){
   const db=freshSectors();const s=db.sectors.find(x=>x.id===sid);if(!s)return;
   const isOwner=s.creator===SESSION.user;
-  const isMember=s.members.includes(SESSION.user);
-  // Не-участники не видят список участников
-  if(!isMember){
-    toast(T('sector_join_to_read'));return;
-  }
   const pendingHTML=(s.pendingRequests||[]).length && isOwner
     ? `<div style="margin-top:16px;"><div style="font-family:var(--font-mono);font-size:10px;color:var(--error);letter-spacing:2px;margin-bottom:8px;">${T('sector_requests')}</div>
       ${s.pendingRequests.map(u=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
@@ -2414,20 +2476,15 @@ function renderSectorMessages(sid) {
   const container = document.getElementById('sector-messages');
   if (!msgs.length) { container.innerHTML=`<div class="empty-state">${T('channel_established')}</div>`; return; }
   container.innerHTML = msgs.map(m => {
-    // Системное сообщение (вход/выход)
-    if (m.system) {
-      return `<div style="text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--text-gray);padding:6px 0;letter-spacing:1px;opacity:.7;">${esc(m.m)}</div>`;
-    }
     const isMe = m.u === SESSION.user;
     const canDelete = isMe || isOwner;
     const sdef = m.sticker ? getStickerDef(m.sticker) : null;
     return `<div class="msg-row ${isMe?'mine':'theirs'}">
       ${!isMe ? `<span onclick="showProfile('${esc(m.u)}')" style="cursor:pointer;">${miniAv(m.u, 24)}</span>` : ''}
       <div class="msg-col ${isMe?'mine-col':''}">
-        ${!isMe ? `<div style="font-family:var(--font-mono);font-size:9px;color:var(--accent);margin-bottom:3px;cursor:pointer;display:flex;align-items:center;flex-wrap:wrap;gap:4px;" onclick="showProfile('${esc(m.u)}')">${esc(m.u)}${roleBadgeHTML(m.u)}</div>` : ''}
+        ${!isMe ? `<div style="font-family:var(--font-mono);font-size:9px;color:var(--accent);margin-bottom:3px;cursor:pointer;" onclick="showProfile('${esc(m.u)}')">${esc(m.u)}</div>` : ''}
         ${m.img ? `<img src="${m.img}" onclick="openZoom(this.src)" style="max-width:min(240px,80%);max-height:180px;object-fit:contain;display:block;margin-bottom:4px;cursor:zoom-in;border:1px solid var(--border);">` : ''}
         ${sdef ? stickerMsgHTML(sdef) : ''}
-        ${m.voice ? voiceMsgHTML(m.voice, m.voiceDur||0, isMe) : ''}
         ${m.m ? `<div class="msg-bubble">${esc(m.m)}</div>` : ''}
         <div class="msg-time" style="${isMe?'text-align:right':''}">
           ${fmtTime(m.t)}
@@ -2476,63 +2533,6 @@ function sendSectorSticker(stickerId) {
   db.sectorChats[_currentSector].push({u: SESSION.user, m: '', sticker: stickerId, t: new Date().toISOString()});
   saveDB(db);
   renderSectorMessages(_currentSector);
-}
-
-// ── Голосовые сообщения в секторе ─────────────────────────
-let _sectorVoiceRecorder = null;
-let _sectorVoiceChunks = [];
-let _sectorVoiceTimer = null;
-let _sectorVoiceSeconds = 0;
-
-function startSectorVoice(){
-  if(_sectorVoiceRecorder) return;
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast(T('voice_no_mic'));return;}
-  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-    const mimeTypes=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4',''];
-    const mime=mimeTypes.find(m=>!m||MediaRecorder.isTypeSupported(m))||'';
-    _sectorVoiceRecorder=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
-    _sectorVoiceChunks=[];_sectorVoiceSeconds=0;
-    _sectorVoiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)_sectorVoiceChunks.push(e.data);};
-    _sectorVoiceRecorder.start(250);
-    const bar=document.getElementById('sector-voice-rec-bar');
-    const wrap=document.getElementById('sector-input-wrap');
-    if(bar){bar.style.display='flex';}
-    if(wrap){wrap.style.display='none';}
-    _sectorVoiceTimer=setInterval(()=>{
-      _sectorVoiceSeconds++;
-      const el=document.getElementById('sector-voice-rec-timer');
-      if(el)el.textContent=Math.floor(_sectorVoiceSeconds/60)+':'+(_sectorVoiceSeconds%60).toString().padStart(2,'0');
-    },1000);
-  }).catch(()=>toast(T('voice_no_mic')));
-}
-
-function stopSectorVoice(send){
-  if(!_sectorVoiceRecorder) return;
-  clearInterval(_sectorVoiceTimer);_sectorVoiceTimer=null;
-  const bar=document.getElementById('sector-voice-rec-bar');
-  const wrap=document.getElementById('sector-input-wrap');
-  if(bar) bar.style.display='none';
-  if(wrap) wrap.style.display='flex';
-  const dur=_sectorVoiceSeconds;
-  const sid=_currentSector;
-  _sectorVoiceRecorder.onstop=()=>{
-    if(send&&sid&&_sectorVoiceChunks.length>0){
-      const mimeType=_sectorVoiceRecorder.mimeType||'audio/webm';
-      const blob=new Blob(_sectorVoiceChunks,{type:mimeType});
-      const reader=new FileReader();
-      reader.onload=e=>{
-        const db=freshSectors();
-        if(!db.sectorChats) db.sectorChats={};
-        if(!db.sectorChats[sid]) db.sectorChats[sid]=[];
-        db.sectorChats[sid].push({id:'sv_'+Date.now(),u:SESSION.user,m:'',voice:e.target.result,voiceDur:dur,t:new Date().toISOString()});
-        saveDB(db);renderSectorMessages(sid);
-      };
-      reader.readAsDataURL(blob);
-    }
-    try{_sectorVoiceRecorder.stream.getTracks().forEach(t=>t.stop());}catch(e){}
-    _sectorVoiceRecorder=null;_sectorVoiceChunks=[];
-  };
-  try{_sectorVoiceRecorder.stop();}catch(e){_sectorVoiceRecorder=null;_sectorVoiceChunks=[];}
 }
 
 
@@ -2932,7 +2932,7 @@ function renderAdminPanel(){
   const sl=document.getElementById('admin-shadow-list');
   if(sl){
     const banned=Object.entries(db.users).filter(([n,u])=>u.shadowban).map(([n])=>n);
-    sl.textContent=banned.length?T('admin_isolated_label')+banned.join(', '):T('admin_no_isolated');
+    sl.textContent=banned.length?'Isolated: '+banned.join(', '):'No isolated operators';
   }
   // roles list
   const rl=document.getElementById('admin-roles-list');
@@ -2940,16 +2940,14 @@ function renderAdminPanel(){
     const roles=Object.entries(db.users).filter(([n,u])=>u.role&&u.role!=='USER');
     rl.innerHTML=roles.map(([n,u])=>`<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-white);margin-bottom:4px;">
       ${esc(n)} <span class="role-badge role-${u.role}">${u.role}</span>
-    </div>`).join('')||`<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-gray);">${T('admin_no_roles')}</div>`;
+    </div>`).join('')||'<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-gray);">No special roles</div>';
   }
   // maintenance
   const mb=document.getElementById('admin-maint-btn');
   const ms=document.getElementById('admin-maint-status');
   const maint=db.maintenance||false;
-  if(mb)mb.textContent=maint?T('admin_disengage'):T('admin_engage');
-  if(ms)ms.textContent=maint?T('admin_mode_on'):T('admin_mode_off');
-  // refresh all translatable labels
-  applyLang();
+  if(mb)mb.textContent=maint?'DISENGAGE':'ENGAGE';
+  if(ms)ms.textContent='MODE: '+(maint?'ON':'OFF');
 }
 
 function adminBroadcast(){
