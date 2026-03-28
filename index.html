@@ -70,7 +70,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .lang-btn:hover:not(.active){color:var(--accent);}
 
 /* ======= MAIN LAYOUT ======= */
-#main-screen{display:none;height:100vh;height:100dvh;flex-direction:row;position:relative;}
+#main-screen{display:none;height:100vh;flex-direction:row;position:relative;}
 
 /* SIDEBAR */
 .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg-panel);display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative;z-index:100;transition:transform .3s;}
@@ -399,194 +399,83 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 }
 /* ======= RESPONSIVE ======= */
 @media(max-width:700px){
-  /* dvh = dynamic viewport height — правильно учитывает адресную строку браузера */
-  :root{--mobile-nav-h:calc(58px + env(safe-area-inset-bottom));}
-
   body{overflow:hidden;}
-  #main-screen{flex-direction:column;height:100dvh;}
-
-  /* Sidebar — выезжает слева */
-  .sidebar{
-    position:fixed;top:0;left:0;bottom:0;
-    transform:translateX(-100%);
-    z-index:400;
-    width:min(280px,85vw);min-width:0;
-    transition:transform .28s cubic-bezier(.4,0,.2,1);
-  }
+  #main-screen{flex-direction:column;}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);z-index:200;width:min(280px,85vw);min-width:0;}
   .sidebar.open{transform:translateX(0);}
   .sidebar-overlay.show{display:block;}
   .mobile-hamburger{display:none !important;}
   .mobile-nav{display:block;}
 
-  /* Viewport — вся высота минус нижний бар */
-  .viewport{
-    height:calc(100dvh - var(--mobile-nav-h));
-    padding-bottom:0;
-    overflow-y:auto;
-    overflow-x:hidden;
-    -webkit-overflow-scrolling:touch;
-  }
+  /* viewport: full height minus bottom nav */
+  .viewport{padding-bottom:58px;height:calc(100vh - 58px);}
 
-  /* Обычные секции */
+  /* general sections */
   .section{padding:16px 12px 80px;}
+  #section-chat{padding:0;}
+  #section-sector-detail{padding:0;}
 
-  /* ── ЧАТ: правильная flex-колонка, не 100vh ── */
-  #section-chat{
-    padding:0;
-    display:none;
-    flex-direction:column;
-    height:100%;        /* fill viewport — НЕ 100dvh */
-    max-height:100%;
-    overflow:hidden;
-  }
+  /* chat layout: flex column, fill screen */
+  #section-chat{display:flex;flex-direction:column;height:100vh;}
   #section-chat.active{display:flex;}
-
-  .chat-nav{
-    padding:10px 12px;
-    flex-shrink:0;
-    flex-wrap:nowrap;
-    gap:8px;
-    align-items:center;
-    overflow:hidden;
-  }
-  .chat-partner{
-    font-size:12px;
-    letter-spacing:1px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    flex:1;min-width:0;
-  }
+  .chat-nav{padding:10px 12px;flex-shrink:0;flex-wrap:wrap;gap:6px;}
   .chat-messages{
-    flex:1;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    padding:10px 12px 16px;
-    min-height:0; /* критично для flex-shrink */
-  }
-  .chat-input-bar{
-    flex-shrink:0;
-    position:relative; /* убираем sticky — flex сам держит снизу */
-    padding:8px 10px;
-    padding-bottom:calc(8px + env(safe-area-inset-bottom));
-    display:flex;
-    flex-wrap:nowrap;
-    align-items:center;
-    gap:6px;
-    min-height:52px;
-    border-top:1px solid var(--border);
-    background:var(--bg-card);
-    z-index:10;
-  }
-  .chat-input-bar .btn{height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;}
-  .chat-input-bar .chat-input{flex:1;min-width:0;height:38px;font-size:16px;padding:8px 10px;}
-  .chat-input-bar .picker-wrap{flex-shrink:0;}
-  .voice-rec-bar{padding:8px 10px;gap:8px;flex-shrink:0;}
-  .voice-rec-bar .btn{height:34px;padding:0 10px;}
-
-  /* ── СЕКТОРЫ: то же самое ── */
-  #section-sector-detail{
-    padding:0;
-    display:none;
-    flex-direction:column;
-    height:100%;
-    max-height:100%;
-    overflow:hidden;
-  }
-  #section-sector-detail.active{display:flex;}
-  .sector-detail-nav{
-    flex-shrink:0;
-    padding:10px 12px;
-    flex-wrap:wrap;
-    gap:6px;
-    overflow:hidden;
-  }
-  .sector-detail-nav #sector-detail-actions{
-    display:flex;flex-wrap:wrap;gap:4px;
-    margin-left:0;width:100%;margin-top:4px;
-  }
-  .sector-chat{
-    flex:1;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    padding:10px 12px 16px;
+    flex:1;overflow-y:auto;padding:10px 12px 10px;
     min-height:0;
   }
+  .chat-input-bar{
+    flex-shrink:0;padding:8px 10px;
+    display:flex;flex-wrap:nowrap;align-items:center;
+    gap:6px;min-height:52px;
+    border-top:1px solid var(--border);
+    background:var(--bg-card);
+  }
+  .chat-input-bar .btn{
+    height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;
+  }
+  .chat-input-bar .chat-input{
+    flex:1;min-width:0;height:38px;font-size:14px;padding:8px 10px;
+  }
+  .chat-input-bar .picker-wrap{flex-shrink:0;}
+  .voice-rec-bar{padding:8px 10px;gap:8px;}
+  .voice-rec-bar .btn{height:34px;padding:0 10px;}
+
+  /* sector detail same as chat */
+  #section-sector-detail{display:flex;flex-direction:column;height:100vh;}
+  #section-sector-detail.active{display:flex;}
+  .sector-detail-nav{flex-shrink:0;padding:10px 12px;flex-wrap:wrap;gap:6px;overflow:hidden;}
+  .sector-detail-nav #sector-detail-actions{
+    display:flex;flex-wrap:wrap;gap:4px;margin-left:0;width:100%;margin-top:4px;
+  }
+  .sector-chat{flex:1;overflow-y:auto;padding:10px 12px;min-height:0;}
   .sector-input-bar{
-    flex-shrink:0;
-    position:relative;
-    padding:8px 10px;
-    padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    flex-shrink:0;padding:8px 10px;
     display:flex;flex-wrap:nowrap;align-items:center;
     gap:6px;min-height:52px;
     border-top:1px solid var(--border);background:var(--bg-card);
-    z-index:10;
   }
   .sector-input-bar .btn{height:38px;min-width:36px;padding:0 10px;font-size:14px;flex-shrink:0;}
-  .sector-input-bar .chat-input{flex:1;min-width:0;height:38px;font-size:16px;padding:8px 10px;}
+  .sector-input-bar .chat-input{flex:1;min-width:0;height:38px;padding:8px 10px;}
 
-  /* ── СТИКЕР-ПИКЕР: fixed, не вылетает за экран ── */
-  .sticker-picker{
-    position:fixed !important;
-    bottom:calc(var(--mobile-nav-h) + 58px) !important;
-    left:8px !important;
-    right:8px !important;
-    width:auto !important;
-    grid-template-columns:repeat(auto-fill,minmax(44px,1fr)) !important;
-    max-height:180px;
-    overflow-y:auto;
-  }
-  /* в чате и секторах — над баром ввода */
-  #section-chat .sticker-picker,
-  #section-sector-detail .sticker-picker{
-    bottom:calc(52px + env(safe-area-inset-bottom) + 8px) !important;
-  }
+  /* messages */
+  .msg-col{max-width:78%;}
+  .msg-img{max-width:160px;}
+  .msg-bubble{font-size:13px;padding:8px 12px;}
 
-  /* ── СООБЩЕНИЯ ── */
-  .msg-col{max-width:82%;}
-  .msg-img{max-width:min(180px,65vw);}
-  .msg-bubble{font-size:14px;padding:9px 13px;}
-
-  /* ── REPLY форма ── */
-  .reply-form{flex-wrap:wrap;gap:8px;padding:12px;}
-  .reply-card{margin-left:0;}
-
-  /* ── TOAST над мобильным меню ── */
-  .toast{bottom:calc(var(--mobile-nav-h) + 12px);right:12px;left:12px;text-align:center;}
-
-  /* ── ОБЩЕЕ ── */
+  /* misc */
   .compose-card{padding:12px;}
   .wave-card{padding:12px 14px;}
-  .wave-card .wave-header{flex-wrap:nowrap;gap:6px;}
-  .wave-text{font-size:14px;}
   .profile-hero-body{padding:0 12px 20px;}
-  .settings-block{padding:16px;}
+  .settings-block{padding:16px 16px;}
+  .reply-card{margin-left:0;}
   .btn{height:40px;}
-  .btn-sm{height:34px;font-size:10px;}
-  .btn-full{height:48px;}
-  .section-title{font-size:13px;letter-spacing:2px;margin-bottom:14px;}
+  .btn-sm{height:34px;}
+  .sticker-picker{bottom:calc(100% + 4px);}
+  .section-title{font-size:14px;letter-spacing:2px;margin-bottom:16px;}
+
+  /* hide sidebar nav labels on very small screens */
   .sidebar-logo span{display:none;}
-
-  /* ── AUTH ── */
-  .auth-box{padding:20px 16px;gap:6px;}
-  .auth-logo{font-size:clamp(32px,10vw,52px);}
-  .cyber-field input,.cyber-field select{font-size:16px;} /* предотвращает зум на iOS */
-
-  /* ── ПРОФИЛЬ ── */
-  .profile-actions{gap:6px;}
-  .profile-meta{gap:12px;}
-
-  /* ── СЕКТОРА карточки ── */
-  .sector-header{flex-wrap:wrap;gap:8px;}
-  .sector-card{padding:14px 16px;}
-
-  /* ── МОДАЛЬНОЕ окно ── */
-  .modal-box{padding:20px 16px;}
-
-  /* ── УВЕДОМЛЕНИЯ ── */
-  .notif-item{padding:10px 12px;}
 }
-
 @media(min-width:701px){
   .mobile-hamburger{display:none !important;}
   .mobile-nav{display:none !important;}
@@ -1165,168 +1054,273 @@ const FIREBASE_CONFIG = {
 // ▲▲▲ КОНЕЦ КОНФИГУРАЦИИ ▲▲▲
 
 // ============================================================
-// DB & SESSION — Firebase Realtime Database
+// DB & SESSION — Firebase Realtime Database (v2 FIXED)
+// Исправлено: бесконечный цикл, массивы→объекты, эхо своих записей
 // ============================================================
 
-// Инициализация Firebase (SDK загружается из CDN ниже)
 let _firebaseApp = null;
 let _firebaseDB  = null;
-let _fbRef       = null;          // корневая ссылка /ekhoo
-let _localDB     = null;          // локальный кеш
-let _dbLoaded    = false;         // флаг: данные уже загружены
-let _dbListeners = [];            // cleanup list
+let _fbRef       = null;
+let _localDB     = null;
+let _dbLoaded    = false;
+let _isSaving    = false;  // флаг: мы сами пишем → игнорируем своё эхо
+let _saveTimer   = null;   // debounce таймер записи
 
-const DB_KEY = 'ekhoo_v900_db';   // оставляем для wipeDatabase()
+const DB_KEY = 'ekhoo_v900_db';
 const SESSION = {user:null, echoed:new Set(), draftWaveImg:null, draftChatImg:null, currentChat:null, device:'desktop'};
 
 function freshDB(){
-  return {meta:{version:'9.0'}, users:{}, waves:[], chats:{}, sectors:[], sectorChats:{}, notifs:{}, news:[T('news_default_1'),T('news_default_2'),T('news_default_3')]};
+  return {meta:{version:'9.0'}, users:{}, waves:{}, chats:{}, sectors:{}, sectorChats:{}, notifs:{}, news:[T('news_default_1'),T('news_default_2'),T('news_default_3')]};
+}
+
+// ── Конвертация: внутренний массив → объект для Firebase ──
+function arrToFirebaseObj(arr, keyFn){
+  if(!arr||!arr.length) return {};
+  const obj={};
+  arr.forEach((item,i)=>{ if(item!=null) obj[keyFn?keyFn(item,i):('k'+i)]=item; });
+  return obj;
+}
+// Конвертация: объект из Firebase → массив (сортировка по числовому ключу)
+function firebaseObjToArr(val){
+  if(!val) return [];
+  if(Array.isArray(val)) return val.filter(x=>x!=null);
+  return Object.keys(val).sort((a,b)=>{
+    const na=Number(a),nb=Number(b);
+    return (isNaN(na)||isNaN(nb))?a.localeCompare(b):na-nb;
+  }).map(k=>val[k]).filter(x=>x!=null);
+}
+
+// ── Преобразование ИЗ Firebase (всё → удобные массивы) ────
+function fromFirebase(data){
+  if(!data) return freshDB();
+  const fresh=freshDB();
+
+  // Пользователи — объект, не трогаем структуру, только фиксим вложенные массивы
+  const users={};
+  Object.keys(data.users||{}).forEach(nick=>{
+    const u=Object.assign({},data.users[nick]);
+    if(u.echoedWaves&&!Array.isArray(u.echoedWaves)) u.echoedWaves=Object.values(u.echoedWaves);
+    if(!u.echoedWaves) u.echoedWaves=[];
+    users[nick]=u;
+  });
+
+  // Waves: объект {wv_id: wave} → массив, свежие первые
+  const wavesRaw=firebaseObjToArr(data.waves).map(w=>{
+    if(!w) return null;
+    const wc=Object.assign({},w);
+    // replies внутри wave
+    if(wc.replies&&!Array.isArray(wc.replies)) wc.replies=firebaseObjToArr(wc.replies);
+    else if(!wc.replies) wc.replies=[];
+    wc.replies.sort((a,b)=>new Date(a.t||0)-new Date(b.t||0));
+    // echoedBy
+    if(wc.echoedBy&&!Array.isArray(wc.echoedBy)) wc.echoedBy=Object.values(wc.echoedBy);
+    if(!wc.echoedBy) wc.echoedBy=[];
+    return wc;
+  }).filter(Boolean);
+  wavesRaw.sort((a,b)=>new Date(b.time||0)-new Date(a.time||0));
+
+  // Chats: {chatId: {0:msg,...}} → {chatId: [msg,...]}
+  const chats={};
+  Object.keys(data.chats||{}).forEach(cid=>{
+    chats[cid]=firebaseObjToArr(data.chats[cid]);
+  });
+
+  // SectorChats аналогично
+  const sectorChats={};
+  Object.keys(data.sectorChats||{}).forEach(sid=>{
+    sectorChats[sid]=firebaseObjToArr(data.sectorChats[sid]);
+  });
+
+  // Sectors: объект → массив
+  const sectors=firebaseObjToArr(data.sectors);
+
+  // Notifs: {user: {0:n,...}} → {user: [n,...]}
+  const notifs={};
+  Object.keys(data.notifs||{}).forEach(u=>{
+    notifs[u]=firebaseObjToArr(data.notifs[u]);
+    notifs[u].sort((a,b)=>new Date(b.t||0)-new Date(a.t||0));
+  });
+
+  // News: объект → массив
+  const newsArr=firebaseObjToArr(data.news).filter(Boolean);
+
+  return Object.assign({},fresh,data,{
+    users, waves:wavesRaw, chats, sectors, sectorChats, notifs,
+    news: newsArr.length?newsArr:fresh.news
+  });
+}
+
+// ── Преобразование В Firebase (массивы → объекты) ─────────
+function toFirebase(db){
+  // Waves: массив → объект по id волны
+  const wavesObj={};
+  (db.waves||[]).forEach(w=>{
+    if(!w||!w.id) return;
+    const wc=Object.assign({},w);
+    // replies → объект
+    const replies=Array.isArray(wc.replies)?wc.replies:[];
+    const ro={};
+    replies.forEach((r,i)=>{ if(r) ro['r'+i]=r; });
+    wc.replies=ro;
+    // echoedBy остаётся массивом — Firebase ok с массивами строк
+    wavesObj[w.id]=wc;
+  });
+
+  // Chats: {cid: [msg,...]} → {cid: {0:msg,...}}
+  const chatsObj={};
+  Object.keys(db.chats||{}).forEach(cid=>{
+    const msgs=db.chats[cid]||[];
+    const co={};
+    msgs.forEach((m,i)=>{ if(m) co[i]=m; });
+    chatsObj[cid]=co;
+  });
+
+  // SectorChats
+  const scObj={};
+  Object.keys(db.sectorChats||{}).forEach(sid=>{
+    const msgs=db.sectorChats[sid]||[];
+    const co={};
+    msgs.forEach((m,i)=>{ if(m) co[i]=m; });
+    scObj[sid]=co;
+  });
+
+  // Sectors: массив → объект по id
+  const sectorsObj={};
+  (db.sectors||[]).forEach(s=>{ if(s&&s.id) sectorsObj[s.id]=s; });
+
+  // Notifs: {user: [n,...]} → {user: {0:n,...}}
+  const notifsObj={};
+  Object.keys(db.notifs||{}).forEach(u=>{
+    const arr=db.notifs[u]||[];
+    const no={};
+    arr.forEach((n,i)=>{ if(n) no[i]=n; });
+    notifsObj[u]=no;
+  });
+
+  // News: массив → объект
+  const newsObj={};
+  (db.news||[]).forEach((n,i)=>{ if(n) newsObj[i]=n; });
+
+  return {
+    meta:       {version:'9.0',updated:new Date().toISOString()},
+    users:      db.users||{},
+    waves:      wavesObj,
+    chats:      chatsObj,
+    sectorChats:scObj,
+    sectors:    sectorsObj,
+    notifs:     notifsObj,
+    news:       newsObj,
+    broadcast:  db.broadcast||null,
+    maintenance:db.maintenance||false
+  };
 }
 
 // ── Инициализация Firebase ─────────────────────────────────
 function initFirebase(){
   if(_firebaseApp) return Promise.resolve();
-  return new Promise((resolve, reject)=>{
-    // Ждём пока SDK загрузится
-    const check = ()=>{
-      if(typeof firebase !== 'undefined' && firebase.app){
+  return new Promise((resolve,reject)=>{
+    const check=()=>{
+      if(typeof firebase!=='undefined'&&firebase.app){
         try{
-          _firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
-          _firebaseDB  = firebase.database();
-          _fbRef       = _firebaseDB.ref('ekhoo');
+          _firebaseApp=firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);
+          _firebaseDB=firebase.database();
+          _fbRef=_firebaseDB.ref('ekhoo');
           resolve();
-        }catch(e){ reject(e); }
-      } else {
-        setTimeout(check, 50);
-      }
+        }catch(e){reject(e);}
+      }else{ setTimeout(check,50); }
     };
     check();
   });
 }
 
-// ── Загрузить DB один раз + подписка на изменения ─────────
+// ── Загрузка + real-time подписка ─────────────────────────
 function loadDB(){
   return initFirebase().then(()=>{
-    return new Promise((resolve)=>{
-      _fbRef.once('value', snap=>{
-        const data = snap.val();
-        _localDB = data ? mergeWithFresh(data) : freshDB();
-        _dbLoaded = true;
+    return new Promise(resolve=>{
+      _fbRef.once('value',snap=>{
+        _localDB=fromFirebase(snap.val());
+        _dbLoaded=true;
         resolve(_localDB);
-        // Подписка на real-time обновления
-        _fbRef.on('value', snap2=>{
-          const d2 = snap2.val();
-          if(d2){
-            _localDB = mergeWithFresh(d2);
-            onDBChanged();
-          }
+        // Слушаем обновления от ДРУГИХ клиентов
+        _fbRef.on('value',snap2=>{
+          if(_isSaving) return; // это наше собственное эхо — игнорируем
+          _localDB=fromFirebase(snap2.val());
+          onDBChanged();
         });
-      }, err=>{
-        console.error('Firebase read error:', err);
-        // Fallback: загрузить из localStorage
-        const raw = localStorage.getItem(DB_KEY);
-        _localDB = raw ? JSON.parse(raw) : freshDB();
-        _dbLoaded = true;
+      },err=>{
+        console.error('Firebase read error:',err);
+        try{ const raw=localStorage.getItem(DB_KEY); _localDB=raw?JSON.parse(raw):freshDB(); }
+        catch(e){ _localDB=freshDB(); }
+        _dbLoaded=true;
         resolve(_localDB);
       });
     });
   });
 }
 
-function normalizeArray(val){
-  if(!val) return [];
-  if(Array.isArray(val)) return val.filter(x=>x!=null);
-  // Firebase сохраняет массивы как объекты {0:…, 1:…}
-  return Object.values(val).filter(x=>x!=null);
-}
-
-function mergeWithFresh(data){
-  const fresh = freshDB();
-  // Нормализуем chats: каждый чат тоже массив
-  const rawChats = data.chats || {};
-  const chats = {};
-  Object.keys(rawChats).forEach(cid=>{
-    chats[cid] = normalizeArray(rawChats[cid]);
-  });
-  // Нормализуем sectorChats
-  const rawSC = data.sectorChats || {};
-  const sectorChats = {};
-  Object.keys(rawSC).forEach(sid=>{
-    sectorChats[sid] = normalizeArray(rawSC[sid]);
-  });
-  // Нормализуем notifs
-  const rawNotifs = data.notifs || {};
-  const notifs = {};
-  Object.keys(rawNotifs).forEach(u=>{
-    notifs[u] = normalizeArray(rawNotifs[u]);
-  });
-  // Нормализуем replies в waves
-  const waves = normalizeArray(data.waves).map(w=>{
-    if(w && w.replies) w.replies = normalizeArray(w.replies);
-    return w;
-  });
-  return Object.assign({}, fresh, data, {
-    users:      data.users      || {},
-    waves,
-    chats,
-    sectors:    normalizeArray(data.sectors),
-    sectorChats,
-    notifs,
-    news:       normalizeArray(data.news).length ? normalizeArray(data.news) : fresh.news
-  });
-}
-
-// Вызывается при каждом обновлении из Firebase (real-time)
+// Вызывается при обновлениях от ДРУГИХ клиентов
 function onDBChanged(){
   if(!SESSION.user) return;
   try{
     renderFeed();
     renderActiveChats();
     updateNotifBadge();
-    if(SESSION.currentChat) renderChatMessages(SESSION.currentChat);
-    if(_currentSector) renderSectorMessages(_currentSector);
+    // обновляем чат только если он открыт — не сбрасываем фокус ввода
+    const chatSec=document.getElementById('section-chat');
+    if(chatSec&&chatSec.classList.contains('active')&&SESSION.currentChat){
+      renderChatMessages(SESSION.currentChat);
+    }
+    if(_currentSector){
+      const secSec=document.getElementById('section-sector-detail');
+      if(secSec&&secSec.classList.contains('active')) renderSectorMessages(_currentSector);
+    }
   }catch(e){}
 }
 
 // ── getDB / saveDB ─────────────────────────────────────────
 function getDB(){
-  if(!_localDB) _localDB = freshDB();
+  if(!_localDB) _localDB=freshDB();
   return _localDB;
 }
 
+// saveDB с debounce 300мс — не заваливаем Firebase запросами
 function saveDB(db){
-  db.meta = {version:'9.0', updated: new Date().toISOString()};
-  _localDB = db;
-  // Сохраняем в localStorage как резервную копию
-  try{ localStorage.setItem(DB_KEY, JSON.stringify(db)); }catch(e){}
-  // Сохраняем в Firebase
-  if(_fbRef){
-    _fbRef.set(db).catch(err=>{
-      console.error('Firebase write error:', err);
-      toast('⚠️ Ошибка сохранения в Firebase');
-    });
-  }
+  db.meta={version:'9.0',updated:new Date().toISOString()};
+  _localDB=db;
+  try{ localStorage.setItem(DB_KEY,JSON.stringify(db)); }catch(e){}
+  if(!_fbRef) return;
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    _isSaving=true;
+    _fbRef.set(toFirebase(db))
+      .then(()=>{ setTimeout(()=>{ _isSaving=false; },400); })
+      .catch(err=>{
+        _isSaving=false;
+        console.error('Firebase write error:',err);
+        toast('⚠️ Ошибка сохранения');
+      });
+  },300);
 }
 
-// ── wipeDatabase (Settings) ────────────────────────────────
+// ── wipeDatabase ───────────────────────────────────────────
 function wipeDatabase(){
   if(!confirm(T('wipe_confirm'))) return;
-  if(_fbRef){ _fbRef.set(freshDB()); }
+  const empty=toFirebase(freshDB());
+  if(_fbRef){ _isSaving=true; _fbRef.set(empty).then(()=>setTimeout(()=>_isSaving=false,400)); }
   localStorage.removeItem(DB_KEY);
+  _localDB=freshDB();
   SESSION.user=null; SESSION.echoed.clear(); doLogout(); toast(T('toast_wiped'));
 }
 
+// updateActivity — точечный update без полного saveDB
 function updateActivity(u){
   if(!u) return;
   const db=getDB();
   if(db.users[u]){
-    const ts = new Date().toISOString();
-    db.users[u].last_seen = ts;
-    _localDB = db;
-    // Обновляем только last_seen, не перезаписываем всю БД
-    if(_fbRef){
-      _fbRef.child('users/'+u+'/last_seen').set(ts).catch(()=>{});
-    }
+    const ts=new Date().toISOString();
+    db.users[u].last_seen=ts;
+    _localDB=db;
+    if(_fbRef){ _fbRef.child('users/'+u+'/last_seen').set(ts).catch(()=>{}); }
   }
 }
 function getUserStatus(username){
@@ -1441,7 +1435,8 @@ function doRegister(){
 function afterAuth(nick){
   SESSION.user=nick;
   const dbU=getDB().users[nick];
-  SESSION.echoed=new Set(dbU.echoedWaves||[]);
+  const ew=dbU.echoedWaves||[];
+  SESSION.echoed=new Set(Array.isArray(ew)?ew:Object.values(ew));
   SESSION.device=dbU.device||'desktop';
   _pendingUser=nick;
   updateActivity(nick);
@@ -1488,30 +1483,6 @@ function buildMain(){
   startPingMonitor();
   checkGlobalState();
   updateNotifBadge();
-  initMobileKeyboardFix();
-}
-
-// Скролл к низу сообщений когда открывается клавиатура на мобильном
-function initMobileKeyboardFix(){
-  if(window.innerWidth>700) return;
-  const scrollChatToBottom=()=>{
-    const cm=document.getElementById('chat-messages');
-    if(cm) cm.scrollTop=cm.scrollHeight;
-    const sc=document.getElementById('sector-messages');
-    if(sc) sc.scrollTop=sc.scrollHeight;
-  };
-  // Когда поле ввода получает фокус — через 350мс (после анимации клавиатуры) скролл вниз
-  document.addEventListener('focusin',e=>{
-    if(e.target.matches('.chat-input,#sector-input,#reply-input-*')){
-      setTimeout(scrollChatToBottom,350);
-    }
-  },{passive:true});
-  // visualViewport resize — клавиатура открылась/закрылась
-  if(window.visualViewport){
-    window.visualViewport.addEventListener('resize',()=>{
-      setTimeout(scrollChatToBottom,100);
-    },{passive:true});
-  }
 }
 
 function renderSidebarAvatar(){
@@ -1633,6 +1604,8 @@ function doEcho(wid){
     if(!w.echoedBy)w.echoedBy=[];
     if(!w.echoedBy.includes(SESSION.user))w.echoedBy.push(SESSION.user);
     if(!db.users[SESSION.user].echoedWaves)db.users[SESSION.user].echoedWaves=[];
+    const ew=db.users[SESSION.user].echoedWaves;
+    if(!Array.isArray(ew)) db.users[SESSION.user].echoedWaves=Object.values(ew);
     if(!db.users[SESSION.user].echoedWaves.includes(wid))db.users[SESSION.user].echoedWaves.push(wid);
     saveDB(db);
     addNotif(w.author,'echo',{who:SESSION.user,wid});
